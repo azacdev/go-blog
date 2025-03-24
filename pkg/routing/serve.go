@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/azacdev/go-blog/internal/modules/home/routes"
 	"github.com/azacdev/go-blog/pkg/config"
 )
 
@@ -19,8 +18,4 @@ func Serve() {
 		return
 	}
 
-}
-
-func RegisterRoutes() {
-	routes.Routes(GetRouter())
 }
