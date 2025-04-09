@@ -2,6 +2,7 @@ package bootstrap
 
 import (
 	"github.com/azacdev/go-blog/pkg/config"
+	"github.com/azacdev/go-blog/pkg/database"
 	"github.com/azacdev/go-blog/pkg/html"
 	"github.com/azacdev/go-blog/pkg/routing"
 	"github.com/azacdev/go-blog/pkg/static"
@@ -9,6 +10,8 @@ import (
 
 func Serve() {
 	config.Set()
+
+	database.Connect()
 
 	routing.Init()
 

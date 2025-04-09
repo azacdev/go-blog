@@ -4,3 +4,11 @@ app:
 server: 
   host: "localhost"
   port: "5000"
+
+db:
+  username: "neondb_owner"
+  password: "npg_hyaN5YC2EMmR"
+  host: "ep-quiet-unit-a2obwhga-pooler.eu-central-1.aws.neon.tech"
+  port: "5432"
+  name: "neondb"
+  ssl: "require"
