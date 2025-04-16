@@ -20,10 +20,13 @@ func New() *Controller {
 
 func (controller *Controller) Index(c *gin.Context) {
 
+	featured := controller.articleService.GetFeaturedArticles()
+	stories := controller.articleService.GetStoriesArticles()
+
 	html.Render(c, http.StatusOK, "modules/home/html/home", gin.H{
 		"title":    "Home Page",
-		"featured": controller.articleService.GetFeaturedArticles(),
-		"stories":  controller.articleService.GetStoriesArticles(),
+		"featured": featured.Data,
+		"stories":  stories.Data,
 	})
 
 }

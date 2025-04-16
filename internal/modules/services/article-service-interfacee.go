@@ -5,4 +5,5 @@ import ArticleResponse "github.com/azacdev/go-blog/internal/modules/article/resp
 type ArticleServiceInterface interface {
 	GetFeaturedArticles() ArticleResponse.Articles
 	GetStoriesArticles() ArticleResponse.Articles
+	Find(id int) (ArticleResponse.Article, error)
 }

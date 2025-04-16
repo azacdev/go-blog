@@ -1,0 +1,40 @@
+{{ define "templates/errors/html/404" }}
+<!DOCTYPE html>
+
+<html lang="en">
+  <!-- Header -->
+  {{ template "templates/layouts/html/head" . }}
+
+  <body>
+    <!-- Begin Nav
+================================================== -->
+    {{ template "templates/layouts/html/navbar" . }}
+    <!-- End Nav
+================================================== -->
+
+    <!-- Begin Site Title
+================================================== -->
+    <div class="container">
+      {{ template "templates/layouts/html/header" . }}
+      <!-- End Site Title
+================================================== -->
+      <div class="col-12">
+        <h1>{{ .title}}</h1>
+        <p>{{ .message}}</p>
+      </div>
+      <!-- Begin Footer
+	================================================== -->
+      {{ template "templates/layouts/html/footer" . }}
+      <!-- End Footer
+	================================================== -->
+    </div>
+    <!-- /.container -->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    {{ template "templates/layouts/html/foot" . }}
+  </body>
+</html>
+
+{{ end }}
