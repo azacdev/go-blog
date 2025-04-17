@@ -1,0 +1,10 @@
+package services
+
+import (
+	"github.com/azacdev/go-blog/internal/modules/user/request/auth"
+	userResponse "github.com/azacdev/go-blog/internal/modules/user/responses"
+)
+
+type UserServiceInterface interface {
+	Create(request auth.RegisterRequest) (userResponse.User, error)
+}
