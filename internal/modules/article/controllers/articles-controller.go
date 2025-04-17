@@ -33,7 +33,6 @@ func (controller *Controller) Show(c *gin.Context) {
 
 	// If the article is not found show error
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"message": err.Error()})
 		html.Render(c, http.StatusNotFound, "templates/errors/html/404", gin.H{"title": "Page not found", "message": err.Error()})
 		return
 	}
