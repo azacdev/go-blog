@@ -6,8 +6,10 @@ import (
 
 	"github.com/azacdev/go-blog/internal/modules/user/request/auth"
 	userService "github.com/azacdev/go-blog/internal/modules/user/services"
+	"github.com/azacdev/go-blog/pkg/converters"
 	"github.com/azacdev/go-blog/pkg/errors"
 	"github.com/azacdev/go-blog/pkg/html"
+	"github.com/azacdev/go-blog/pkg/sessions"
 	"github.com/gin-gonic/gin"
 )
 
@@ -35,9 +37,9 @@ func (controller *Controller) HandleRegister(c *gin.Context) {
 	if err := c.ShouldBind(&request); err != nil {
 		errors.Init()
 		errors.SetFromError(err)
-		c.JSON(http.StatusOK, errors.Get())
 
-		return
+		sessions.Set(c, "errors", converters.MapToString(errors.Get()))
+
 		c.Redirect(http.StatusFound, "/register")
 		return
 	}

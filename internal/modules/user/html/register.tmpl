@@ -34,9 +34,9 @@
                 id="name"
                 name="name"
                 placeholder="Name"
-                value="{{ range.old.name }}{{ . }}{{ end }}"
+                value=""
               />
-              <span class="text-danger">{{ .errors.name }}</span>
+              <span class="text-danger">{{ .ERRORS.Name }}</span>
             </p>
             <p>
               <label for="email">Email</label>
@@ -45,9 +45,9 @@
                 id="email"
                 name="email"
                 placeholder="Email"
-                value="{{ range.old.email }}{{ . }}{{ end }}"
+                value=""
               />
-              <span class="text-danger">{{ .errors.email }}</span>
+              <span class="text-danger">{{ .ERRORS.Email }}</span>
             </p>
             <p>
               <label for="password">Password</label>
@@ -57,7 +57,7 @@
                 name="password"
                 placeholder="Password"
               />
-              <span class="text-danger">{{ .errors.password }}</span>
+              <span class="text-danger">{{ .ERRORS.Password }}</span>
             </p>
             <p><button type="submit">Register</button></p>
           </form>
