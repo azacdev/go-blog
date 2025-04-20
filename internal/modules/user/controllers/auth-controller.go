@@ -121,3 +121,8 @@ func (controller *Controller) HandleLogin(c *gin.Context) {
 	c.Redirect(http.StatusFound, "/")
 
 }
+
+func (controller *Controller) HandleLogout(c *gin.Context) {
+	sessions.Remove(c, "auth")
+	c.Redirect(http.StatusFound, "/")
+}
