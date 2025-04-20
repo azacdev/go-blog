@@ -25,7 +25,7 @@ func (userService *UserService) Create(request auth.RegisterRequest) (UserRespon
 	var response UserResponse.User
 	var user userModel.User
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte("secret"), 12)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(request.Password), 12)
 
 	if err != nil {
 		log.Fatal("Failed to hash password")
@@ -53,4 +53,21 @@ func (userService *UserService) CheckUserExists(email string) bool {
 	}
 
 	return false
+}
+
+func (userService *UserService) HandleUserLogin(request auth.LoginRequest) (UserResponse.User, error) {
+	var response UserResponse.User
+	existUser := userService.userRepository.FindByEmail(request.Email)
+
+	if existUser.ID == 0 {
+		return response, errors.New("invalid credentials")
+	}
+
+	err := bcrypt.CompareHashAndPassword([]byte(existUser.Password), []byte(request.Password))
+
+	if err != nil {
+		return response, errors.New("invalid credentials")
+	}
+
+	return UserResponse.ToUser(existUser), nil
 }
