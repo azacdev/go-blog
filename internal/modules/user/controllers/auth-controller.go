@@ -34,7 +34,6 @@ func (controller *Controller) Register(c *gin.Context) {
 
 func (controller *Controller) HandleRegister(c *gin.Context) {
 	// Validate the request
-
 	var request auth.RegisterRequest
 	if err := c.ShouldBind(&request); err != nil {
 		errors.Init()
@@ -49,6 +48,7 @@ func (controller *Controller) HandleRegister(c *gin.Context) {
 		return
 	}
 
+	// Check if there is any error in the user creation
 	if controller.userService.CheckUserExists(request.Email) {
 		errors.Init()
 		errors.Add("Email", "Email address already exist")
@@ -71,8 +71,53 @@ func (controller *Controller) HandleRegister(c *gin.Context) {
 	}
 
 	sessions.Set(c, "auth", strconv.Itoa(int(user.ID)))
-	// Check if there is any error in the user creation
 	// After creating the user redirect to homepage
 	log.Printf("The user has been created successfully with name %s \n", user.Name)
 	c.Redirect(http.StatusFound, "/")
+}
+
+func (controller *Controller) Login(c *gin.Context) {
+	html.Render(c, http.StatusOK, "modules/user/html/login", gin.H{
+		"title": "Login page",
+	})
+
+}
+
+func (controller *Controller) HandleLogin(c *gin.Context) {
+	// Validate the request
+	var request auth.LoginRequest
+
+	if err := c.ShouldBind(&request); err != nil {
+		errors.Init()
+		errors.SetFromError(err)
+		sessions.Set(c, "errors", converters.MapToString(errors.Get()))
+
+		old.Init()
+		old.Set(c)
+		sessions.Set(c, "old", converters.URLValuesToString(old.Get()))
+		log.Printf("Parsing error")
+		c.Redirect(http.StatusFound, "/login")
+		return
+	}
+
+	user, err := controller.userService.HandleUserLogin(request)
+
+	if err != nil {
+		errors.Init()
+		errors.Add("Email", err.Error())
+		sessions.Set(c, "errors", converters.MapToString(errors.Get()))
+
+		old.Init()
+		old.Set(c)
+		sessions.Set(c, "old", converters.URLValuesToString(old.Get()))
+		log.Printf("User error")
+		c.Redirect(http.StatusFound, "/login")
+		return
+	}
+
+	sessions.Set(c, "auth", strconv.Itoa(int(user.ID)))
+	// After creating the user redirect to homepage
+	log.Printf("The user has been logged in successfully with name %s \n", user.Name)
+	c.Redirect(http.StatusFound, "/")
+
 }
