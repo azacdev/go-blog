@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"github.com/azacdev/go-blog/internal/middlewares"
 	userCtrl "github.com/azacdev/go-blog/internal/modules/user/controllers"
 	"github.com/gin-gonic/gin"
 )
@@ -8,10 +9,19 @@ import (
 func Routes(router *gin.Engine) {
 	articlesController := userCtrl.New()
 
-	router.GET("/register", articlesController.Register)
-	router.POST("/register", articlesController.HandleRegister)
+	guestGroup := router.Group("/")
+	guestGroup.Use(middlewares.IsGuest())
+	{
+		guestGroup.GET("/register", articlesController.Register)
+		guestGroup.POST("/register", articlesController.HandleRegister)
 
-	router.GET("/login", articlesController.Login)
-	router.POST("/login", articlesController.HandleLogin)
-	router.POST("/logout", articlesController.HandleLogout)
+		guestGroup.GET("/login", articlesController.Login)
+		guestGroup.POST("/login", articlesController.HandleLogin)
+	}
+
+	authGroup := router.Group("/")
+	authGroup.Use(middlewares.IsAuth())
+	{
+		authGroup.POST("/logout", articlesController.HandleLogout)
+	}
 }
