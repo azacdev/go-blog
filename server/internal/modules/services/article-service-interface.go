@@ -7,8 +7,8 @@ import (
 )
 
 type ArticleServiceInterface interface {
-	GetFeaturedArticles() ArticleResponse.Articles
-	GetStoriesArticles() ArticleResponse.Articles
+	GetFeaturedArticles() (ArticleResponse.Articles, error)
+	GetStoriesArticles() (ArticleResponse.Articles, error)
 	Find(id int) (ArticleResponse.Article, error)
 	StoreAsUser(request articles.StoreRequest, user UserResponse.User) (ArticleResponse.Article, error)
 }

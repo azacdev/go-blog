@@ -8,5 +8,4 @@ import (
 func Routes(router *gin.Engine) {
 	homeController := homeCtrl.New()
 	router.GET("/", homeController.Index)
-
 }

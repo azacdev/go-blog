@@ -20,15 +20,24 @@ func New() *ArticleService {
 	}
 }
 
-func (articleService *ArticleService) GetFeaturedArticles() ArticleResponse.Articles {
-	articles := articleService.articleRepository.List(4)
+func (articleService *ArticleService) GetFeaturedArticles() (ArticleResponse.Articles, error) {
 
-	return ArticleResponse.ToArticles(articles)
+	articles, err := articleService.articleRepository.List(4)
+
+	if err != nil {
+		return ArticleResponse.Articles{}, err
+	}
+	return ArticleResponse.ToArticles(articles), nil
+
 }
 
-func (articleService *ArticleService) GetStoriesArticles() ArticleResponse.Articles {
-	articles := articleService.articleRepository.List(6)
-	return ArticleResponse.ToArticles(articles)
+func (articleService *ArticleService) GetStoriesArticles() (ArticleResponse.Articles, error) {
+	articles, err := articleService.articleRepository.List(6)
+	if err != nil {
+		return ArticleResponse.Articles{}, err
+	}
+	return ArticleResponse.ToArticles(articles), nil
+
 }
 
 func (articleService *ArticleService) Find(id int) (ArticleResponse.Article, error) {
