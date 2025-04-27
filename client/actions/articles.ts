@@ -1,46 +1,71 @@
 "use server";
 
 import { get } from "@/lib/api";
+import {
+  ArticleResponse,
+  ArticlesResponse,
+  FetchArticleResult,
+  FetchArticlesResult,
+} from "@/types/articles";
 
-type Article = {
-  ID: number;
-  Image: string;
-  Title: string;
-  Content: string;
-  CreatedAt: string;
-  User: {
-    ID: number;
-    Image: string;
-    Name: string;
-    Email: string;
-  };
-};
-
-type ArticlesResponse = {
-  featured: Article[];
-  stories: Article[];
-};
-
-export async function getArticles() {
+export async function getArticles(): Promise<FetchArticlesResult> {
   try {
-    const response = await get<ArticlesResponse>("articles");
+    const response = await get<ArticlesResponse>("");
 
-    if (!response.ok) {
+    if (response.status >= 200 && response.status < 300) {
+      return { data: response.data, error: null };
+    } else {
+      console.error(
+        "Failed to fetch articles with status:",
+        response.status,
+        response.data
+      );
       return {
-        error: response.data?.message || "Failed to fetch articles",
-        status: response.status,
+        data: null,
+        error: `Failed to fetch articles (HTTP ${response.status}): ${
+          response.data?.message ||
+          "An unexpected error occurred from the server."
+        }`,
       };
     }
-
-    return {
-      data: response.data,
-      status: response.status,
-    };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Failed to fetch articles:", error);
     return {
-      error: "An unexpected error occurred while fetching articles",
-      status: 500,
+      data: null,
+      error: `An unexpected error occurred while fetching articles: ${
+        error.message || "Please try again later."
+      }`,
+    };
+  }
+}
+
+export async function getArticleById(id: string): Promise<FetchArticleResult> {
+  try {
+    const response = await get<ArticleResponse>(`/articles/${id}`);
+
+    if (response.status >= 200 && response.status < 300) {
+      return { data: response.data, error: null };
+    } else {
+      console.error(
+        "Failed to fetch articles with status:",
+        response.status,
+        response.data
+      );
+      return {
+        data: null,
+        error: `Failed to fetch articles (HTTP ${response.status}): ${
+          response.data?.message ||
+          "An unexpected error occurred from the server."
+        }`,
+      };
+    }
+  } catch (error: any) {
+    console.error("Failed to fetch articles:", error);
+    return {
+      data: null,
+      error: `An unexpected error occurred while fetching articles: ${
+        error.message || "Please try again later."
+      }`,
     };
   }
 }

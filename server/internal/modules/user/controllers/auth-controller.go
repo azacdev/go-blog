@@ -25,40 +25,17 @@ func New() *Controller {
 	}
 }
 
-func (controller *Controller) Register(c *gin.Context) {
-	html.Render(c, http.StatusOK, "modules/user/html/register", gin.H{
-		"title": "Register page",
-	})
-
-}
-
 func (controller *Controller) HandleRegister(c *gin.Context) {
 	// Validate the request
 	var request auth.RegisterRequest
 	if err := c.ShouldBind(&request); err != nil {
-		errors.Init()
-		errors.SetFromError(err)
-		sessions.Set(c, "errors", converters.MapToString(errors.Get()))
-
-		old.Init()
-		old.Set(c)
-		sessions.Set(c, "old", converters.URLValuesToString(old.Get()))
-
-		c.Redirect(http.StatusFound, "/register")
+		errors.ValidationErrorResponse(c, err)
 		return
 	}
 
 	// Check if there is any error in the user creation
 	if controller.userService.CheckUserExists(request.Email) {
-		errors.Init()
-		errors.Add("Email", "Email address already exist")
-		sessions.Set(c, "errors", converters.MapToString(errors.Get()))
-
-		old.Init()
-		old.Set(c)
-		sessions.Set(c, "old", converters.URLValuesToString(old.Get()))
-
-		c.Redirect(http.StatusFound, "/register")
+		errors.FieldErrorResponse(c, http.StatusConflict, "Email address already exists")
 		return
 	}
 
@@ -66,14 +43,19 @@ func (controller *Controller) HandleRegister(c *gin.Context) {
 	user, err := controller.userService.Create(request)
 
 	if err != nil {
-		c.JSON(http.StatusFound, "/register")
+		errors.ValidationErrorResponse(c, err)
 		return
 	}
 
 	sessions.Set(c, "auth", strconv.Itoa(int(user.ID)))
 	// After creating the user redirect to homepage
 	log.Printf("The user has been created successfully with name %s \n", user.Name)
-	c.Redirect(http.StatusFound, "/")
+
+	c.JSON(http.StatusCreated, gin.H{
+		"status":  http.StatusOK,
+		"message": "The user has been created successfully",
+		"user":    user,
+	})
 }
 
 func (controller *Controller) Login(c *gin.Context) {

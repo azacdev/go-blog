@@ -34,12 +34,9 @@ func (controller *Controller) Index(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"status":  "success",
-		"message": "Successfully retrieved articles",
-		"result": gin.H{
-			"featured": featured.Data,
-			"stories":  stories.Data,
-		},
+		"featured": featured.Data,
+		"stories":  stories.Data,
+		"message":  "Articles fetched successfully",
+		"status":   http.StatusOK,
 	})
-
 }

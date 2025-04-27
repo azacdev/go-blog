@@ -7,16 +7,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"gorm.io/gorm" // Import GORM for potential database error checks
+	"gorm.io/gorm"
 )
 
-type ErrorResponse struct {
-	Status  string            `json:"status"`
-	Message string            `json:"message"`
-	Errors  map[string]string `json:"errors,omitempty"` // Optional field
+type FormattedErrorResponse struct {
+	Errors map[string]string `json:"errors"`
 }
 
-// ValidationErrorResponse sends an appropriate HTTP response based on the error type
 func ValidationErrorResponse(c *gin.Context, err error) {
 	var validationErrors validator.ValidationErrors
 	if errors.As(err, &validationErrors) {
@@ -24,36 +21,36 @@ func ValidationErrorResponse(c *gin.Context, err error) {
 		for _, fieldError := range validationErrors {
 			formattedErrors[fieldError.Field()] = getErrorMessage(fieldError.Tag())
 		}
-		c.JSON(http.StatusBadRequest, ErrorResponse{
-			Status:  "error",
-			Message: "Validation failed",
-			Errors:  formattedErrors,
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  http.StatusBadRequest,
+			"error":   "Bad Request",
+			"message": formattedErrors,
 		})
 		return
 	}
 
-	// Check for common database errors (using GORM's error type if applicable)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		c.JSON(http.StatusNotFound, ErrorResponse{
-			Status:  "error",
-			Message: "Resource not found",
+		c.JSON(http.StatusNotFound, gin.H{
+			"status":  http.StatusNotFound,
+			"error":   "Not Found",
+			"message": "Resource not found",
 		})
 		return
 	}
 
-	// Check for the specific "relation does not exist" error (or similar database errors)
 	if strings.Contains(err.Error(), "relation \"articles\" does not exist") {
-		c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Status:  "error",
-			Message: "Database table 'articles' does not exist",
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  http.StatusInternalServerError,
+			"error":   "Internal Server Error",
+			"message": "Articles' does not exist.",
 		})
 		return
 	}
 
-	// Fallback for other internal server errors
-	c.JSON(http.StatusInternalServerError, ErrorResponse{
-		Status:  "error",
-		Message: "Internal server error",
+	c.JSON(http.StatusInternalServerError, gin.H{
+		"status":  http.StatusInternalServerError,
+		"error":   "Internal Server Error",
+		"message": err.Error(),
 	})
 }
 
@@ -63,10 +60,27 @@ func getErrorMessage(tag string) string {
 		"email":    "This field must be a valid email address",
 		"min":      "Should be more than the limit",
 		"max":      "Should be less than the limit",
-		// Add other validation tags and their corresponding messages
 	}
 	if msg, ok := errorMessages[tag]; ok {
 		return msg
 	}
-	return "Validation failed" // Default message if tag is not found
+	return "Validation failed"
+}
+
+func FieldErrorResponse(c *gin.Context, statusCode int, message string) {
+	errStatus := ""
+	switch statusCode {
+	case http.StatusBadRequest:
+		errStatus = "Bad Request"
+	case http.StatusConflict:
+		errStatus = "Conflict"
+	default:
+		errStatus = http.StatusText(statusCode)
+	}
+
+	c.JSON(statusCode, gin.H{
+		"status":  statusCode,
+		"error":   errStatus,
+		"message": message,
+	})
 }
