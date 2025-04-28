@@ -1,3 +1,4 @@
+import { getArticleById } from "@/actions/articles";
 import ArticleDetail from "@/components/article-detail";
 
 // This would typically come from a database
@@ -22,13 +23,18 @@ const mockArticle = {
   tags: ["Next.js", "React", "Web Development", "JavaScript"],
 };
 
-export default function ArticlePage({ params }: { params: { id: string } }) {
-  // In a real application, you would fetch the article data based on the ID
-  // const article = await getArticleById(params.id)
+export default async function ArticlePage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const id = await params.id;
+  const result = await getArticleById(id);
+  const article = result.data?.article;
 
   return (
-    <div className="min-h-screen flex justify-center items-center container mx-auto px-4 pt-20">
-      <ArticleDetail article={mockArticle} />
+    <div className="min-h-screen flex justify-center items-center container mx-auto px-4 pt-20 max-w-5xl">
+      <ArticleDetail article={article || null} />
     </div>
   );
 }

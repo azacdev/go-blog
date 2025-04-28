@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	ArticleService "github.com/azacdev/go-blog/internal/modules/services"
-	"github.com/azacdev/go-blog/pkg/html"
+	"github.com/azacdev/go-blog/pkg/errors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,13 +20,23 @@ func New() *Controller {
 
 func (controller *Controller) Index(c *gin.Context) {
 
-	featured := controller.articleService.GetFeaturedArticles()
-	stories := controller.articleService.GetStoriesArticles()
+	featured, err := controller.articleService.GetFeaturedArticles()
 
-	html.Render(c, http.StatusOK, "modules/home/html/home", gin.H{
-		"title":    "Home Page",
+	if err != nil {
+		errors.ValidationErrorResponse(c, err) // Use the error handler
+		return
+	}
+
+	stories, err := controller.articleService.GetStoriesArticles()
+	if err != nil {
+		errors.ValidationErrorResponse(c, err) // Use the error handler
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
 		"featured": featured.Data,
 		"stories":  stories.Data,
+		"message":  "Articles fetched successfully",
+		"status":   http.StatusOK,
 	})
-
 }

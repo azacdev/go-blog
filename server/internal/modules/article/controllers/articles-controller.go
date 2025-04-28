@@ -38,21 +38,19 @@ func (controller *Controller) Show(c *gin.Context) {
 	// Find the artlcle from the database
 	article, err := controller.articleService.Find(id)
 
-	// If the article is not found show error
 	if err != nil {
-		html.Render(c, http.StatusNotFound, "templates/errors/html/404", gin.H{"title": "Page not found", "message": err.Error()})
+		errors.ValidationErrorResponse(c, err) // Use the error handler
 		return
 	}
 
-	// If the article is found, render artilce template
-	html.Render(c, http.StatusOK, "modules/article/html/show", gin.H{"title": "Show article", "article": article})
+	c.JSON(http.StatusOK, gin.H{
+		"status":  http.StatusOK,
+		"article": article,
+		"message": "Article fetched successfully",
+	})
 
 }
 
-func (controller *Controller) Create(c *gin.Context) {
-	html.Render(c, http.StatusOK, "modules/article/html/create", gin.H{"title": "Create article"})
-
-}
 func (controller *Controller) Store(c *gin.Context) {
 	// Validate the request
 	var request articles.StoreRequest

@@ -16,12 +16,15 @@ func New() *ArticleRepository {
 	}
 }
 
-func (articleRepository *ArticleRepository) List(limit int) []ArticleModel.Article {
+func (articleRepository *ArticleRepository) List(limit int) ([]ArticleModel.Article, error) {
 	var articles []ArticleModel.Article
 
-	articleRepository.DB.Limit(limit).Joins("User").Find(&articles)
+	result := articleRepository.DB.Limit(limit).Joins("User").Find(&articles)
+	if result.Error != nil {
+		return nil, result.Error // Return nil slice and the error
+	}
 
-	return articles
+	return articles, nil
 }
 
 func (articleRepository *ArticleRepository) Find(id int) ArticleModel.Article {
