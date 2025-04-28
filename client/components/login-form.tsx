@@ -1,12 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import { useAtom } from "jotai/react";
 import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
 
+import { userAtom } from "@/store/user-store";
+import { login } from "@/actions/login";
+import { LoginFormData, loginSchema } from "@/lib/schema";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -17,50 +21,81 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-
-const formSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address" }),
-  password: z
-    .string()
-    .min(6, { message: "Password must be at least 6 characters" }),
-});
-
-type FormValues = z.infer<typeof formSchema>;
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function LoginForm() {
-  const [errors, setErrors] = useState<{ Email?: string; Password?: string }>(
-    {}
-  );
   const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [, setUser] = useAtom(userAtom);
+  const [formStatus, setFormStatus] = useState<{
+    type: "success" | "error" | null;
+    message: string | null;
+  }>({
+    type: null,
+    message: null,
+  });
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
       password: "",
     },
   });
 
-  async function onSubmit(values: FormValues) {
-    console.log("Login form values:", values);
+  async function onSubmit(values: LoginFormData) {
+    setIsSubmitting(true);
+    setFormStatus({ type: null, message: null });
 
-    // Here you would typically handle authentication
-    // For now, we'll just log the values
-
-    // Mock API call
     try {
-      // Simulate API call
-      // await fetch('/api/login', {
-      //   method: 'POST',
-      //   body: JSON.stringify(values),
-      // })
-      // If successful, redirect
-      // router.push('/dashboard')
+      const result = await login(values);
+
+      if (result.success) {
+        if (result.user) {
+          setUser(result.user);
+        }
+
+        setFormStatus({
+          type: "success",
+          message:
+            typeof result.message === "string"
+              ? result.message
+              : "Login successful! Redirecting to home...",
+        });
+
+        // Redirect to login page after a short delay
+        setTimeout(() => {
+          router.push("/");
+        }, 1500);
+      } else {
+        // Handle validation errors from the server
+        if (result.errors) {
+          Object.entries(result.errors).forEach(([field, messages]) => {
+            if (field in form.formState.errors) {
+              form.setError(field as keyof LoginFormData, {
+                type: "server",
+                message: Array.isArray(messages) ? messages[0] : messages,
+              });
+            }
+          });
+        }
+
+        setFormStatus({
+          type: "error",
+          message:
+            typeof result.message === "string"
+              ? result.message
+              : "Login failed. Please try again.",
+        });
+      }
     } catch (error) {
       console.error("Login error:", error);
-      setErrors({
-        Email: "Invalid email or password",
+      setFormStatus({
+        type: "error",
+        message: "An unexpected error occurred. Please try again later.",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -70,6 +105,29 @@ export default function LoginForm() {
         <div className="absolute top-0 left-0 w-0 h-0 border-t-[50px] border-t-primary border-r-[50px] border-r-transparent"></div>
 
         <h2 className="text-2xl font-bold p-6 text-center">Log in</h2>
+
+        {formStatus.message && (
+          <Alert
+            className={`mx-6 ${
+              formStatus.type === "success" ? "bg-green-50" : "bg-red-50"
+            }`}
+          >
+            {formStatus.type === "success" ? (
+              <CheckCircle2 className="h-4 w-4 text-green-600" />
+            ) : (
+              <AlertCircle className="h-4 w-4 text-red-600" />
+            )}
+            <AlertDescription
+              className={
+                formStatus.type === "success"
+                  ? "text-green-700"
+                  : "text-red-700"
+              }
+            >
+              {formStatus.message}
+            </AlertDescription>
+          </Alert>
+        )}
 
         <Form {...form}>
           <form
@@ -85,9 +143,7 @@ export default function LoginForm() {
                   <FormControl>
                     <Input placeholder="Email" {...field} />
                   </FormControl>
-                  {errors.Email && (
-                    <p className="text-sm text-red-500">{errors.Email}</p>
-                  )}
+
                   <FormMessage />
                 </FormItem>
               )}
@@ -102,16 +158,18 @@ export default function LoginForm() {
                   <FormControl>
                     <Input type="password" placeholder="Password" {...field} />
                   </FormControl>
-                  {errors.Password && (
-                    <p className="text-sm text-red-500">{errors.Password}</p>
-                  )}
+
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <Button type="submit" className="w-full">
-              Log in
+            <Button
+              type="submit"
+              className="w-full hover:cursor-pointer"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Logging in" : "Log in"}
             </Button>
           </form>
         </Form>

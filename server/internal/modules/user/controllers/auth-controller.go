@@ -7,10 +7,7 @@ import (
 
 	"github.com/azacdev/go-blog/internal/modules/user/request/auth"
 	userService "github.com/azacdev/go-blog/internal/modules/user/services"
-	"github.com/azacdev/go-blog/pkg/converters"
 	"github.com/azacdev/go-blog/pkg/errors"
-	"github.com/azacdev/go-blog/pkg/html"
-	"github.com/azacdev/go-blog/pkg/old"
 	"github.com/azacdev/go-blog/pkg/sessions"
 	"github.com/gin-gonic/gin"
 )
@@ -54,15 +51,7 @@ func (controller *Controller) HandleRegister(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{
 		"status":  http.StatusOK,
 		"message": "The user has been created successfully",
-		"user":    user,
 	})
-}
-
-func (controller *Controller) Login(c *gin.Context) {
-	html.Render(c, http.StatusOK, "modules/user/html/login", gin.H{
-		"title": "Login page",
-	})
-
 }
 
 func (controller *Controller) HandleLogin(c *gin.Context) {
@@ -70,41 +59,36 @@ func (controller *Controller) HandleLogin(c *gin.Context) {
 	var request auth.LoginRequest
 
 	if err := c.ShouldBind(&request); err != nil {
-		errors.Init()
-		errors.SetFromError(err)
-		sessions.Set(c, "errors", converters.MapToString(errors.Get()))
-
-		old.Init()
-		old.Set(c)
-		sessions.Set(c, "old", converters.URLValuesToString(old.Get()))
-		log.Printf("Parsing error")
-		c.Redirect(http.StatusFound, "/login")
+		errors.ValidationErrorResponse(c, err)
 		return
 	}
 
 	user, err := controller.userService.HandleUserLogin(request)
 
 	if err != nil {
-		errors.Init()
-		errors.Add("Email", err.Error())
-		sessions.Set(c, "errors", converters.MapToString(errors.Get()))
-
-		old.Init()
-		old.Set(c)
-		sessions.Set(c, "old", converters.URLValuesToString(old.Get()))
-		log.Printf("User error")
-		c.Redirect(http.StatusFound, "/login")
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"status":  http.StatusUnauthorized,
+			"message": err.Error(),
+		})
 		return
 	}
 
 	sessions.Set(c, "auth", strconv.Itoa(int(user.ID)))
 	// After creating the user redirect to homepage
 	log.Printf("The user has been logged in successfully with name %s \n", user.Name)
-	c.Redirect(http.StatusFound, "/")
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  http.StatusOK,
+		"message": "User loggedin succesfully",
+		"user":    user,
+	})
 
 }
 
 func (controller *Controller) HandleLogout(c *gin.Context) {
 	sessions.Remove(c, "auth")
-	c.Redirect(http.StatusFound, "/")
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Logged out successfully",
+	})
 }

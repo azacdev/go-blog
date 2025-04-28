@@ -1,21 +1,19 @@
 "use server";
 
 import { post } from "@/lib/api";
-import { LoginFormData, loginSchema } from "@/lib/schema";
-import type { LoginResponse, LoginActionResponse } from "@/types/login";
+import { type RegisterFormData, registerSchema } from "@/lib/schema";
+import type {
+  RegisterResponse,
+  RegisterActionResponse,
+} from "@/types/register";
 
-export async function login(
-  formData: LoginFormData
-): Promise<LoginActionResponse> {
+export async function register(
+  formData: RegisterFormData
+): Promise<RegisterActionResponse> {
   // Validate the input data
-  const validationResult = loginSchema.safeParse(formData);
+  const validationResult = registerSchema.safeParse(formData);
 
   if (!validationResult.success) {
-    console.log(
-      "Validation errors:",
-      validationResult.error.flatten().fieldErrors
-    );
-
     return {
       success: false,
       errors: validationResult.error.flatten().fieldErrors,
@@ -24,28 +22,31 @@ export async function login(
   }
 
   try {
-    const response = await post<LoginResponse>("/login", validationResult.data);
+    const response = await post<RegisterResponse>(
+      "/register",
+      validationResult.data
+    );
 
     if (response.ok) {
-      // Login successful
+      // Registration successful
       return {
         success: true,
         message:
           typeof response.data.message === "string"
             ? response.data.message
-            : "Login successful",
-        user: response.data.user,
+            : "Registration successful",
       };
-    } else if (response.status === 401) {
-      // Unauthorised
+    } else if (response.status === 409) {
+      // Email already exists
       return {
         success: false,
         message:
           typeof response.data.message === "string"
             ? response.data.message
-            : "Invalid credentials",
+            : "Email address already exists",
+        errors: { email: ["Email address already exists"] },
       };
-    } else if (response.status === 400 || response.status === 409) {
+    } else if (response.status === 400) {
       // Validation errors from the server
       const serverErrors: Record<string, string[]> = {};
 
@@ -69,11 +70,11 @@ export async function login(
         message:
           typeof response.data.message === "string"
             ? response.data.message
-            : "An error occurred during login",
+            : "An error occurred during registration",
       };
     }
   } catch (error) {
-    console.error("Login error:", error);
+    console.error("Registration error:", error);
     return {
       success: false,
       message: "Failed to connect to the server. Please try again later.",

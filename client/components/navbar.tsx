@@ -4,18 +4,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { Search } from "lucide-react";
-
-// Placeholder for authentication state
-// This would be replaced with your actual auth logic
-type User = {
-  ID: number;
-  Name: string;
-  Image: string;
-} | null;
+import { useAtom } from "jotai/react";
+import { userAtom } from "@/store/user-store";
 
 export default function Navbar() {
-  // Placeholder auth state - replace with your actual auth implementation
-  const [auth, setAuth] = useState<User>(null);
+  const [user] = useAtom(userAtom);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const toggleMenu = () => {
@@ -23,11 +16,7 @@ export default function Navbar() {
   };
 
   const handleLogout = () => {
-    // Placeholder for logout functionality
-    // Replace with your actual logout logic
     console.log("Logging out...");
-    setAuth(null);
-    // Submit form or call API for logout
   };
 
   return (
@@ -83,7 +72,7 @@ export default function Navbar() {
               </form>
 
               {/* User menu */}
-              {!auth || auth.ID === 0 ? (
+              {!user || user.ID === 0 ? (
                 <Link
                   href="/login"
                   className="ml-4 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
@@ -105,13 +94,13 @@ export default function Navbar() {
                       <Image
                         className="h-8 w-8 rounded-full"
                         src={
-                          auth.Image || "/placeholder.svg?height=32&width=32"
+                          user.Image || "/placeholder.svg?height=32&width=32"
                         }
-                        alt={auth.Name}
+                        alt={user.Name}
                         width={32}
                         height={32}
                       />
-                      <span className="ml-2 text-gray-700">{auth.Name}</span>
+                      <span className="ml-2 text-gray-700">{user.Name}</span>
                     </button>
                   </div>
 
@@ -151,7 +140,7 @@ export default function Navbar() {
       {isMenuOpen && (
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            {!auth || auth.ID === 0 ? (
+            {!user || user.ID === 0 ? (
               <Link
                 href="/login"
                 className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
@@ -163,12 +152,12 @@ export default function Navbar() {
                 <div className="px-3 py-2 flex items-center">
                   <Image
                     className="h-8 w-8 rounded-full mr-2"
-                    src={auth.Image || "/placeholder.svg?height=32&width=32"}
-                    alt={auth.Name}
+                    src={user.Image || "/placeholder.svg?height=32&width=32"}
+                    alt={user.Name}
                     width={32}
                     height={32}
                   />
-                  <span className="text-gray-700">{auth.Name}</span>
+                  <span className="text-gray-700">{user.Name}</span>
                 </div>
                 <Link
                   href="/articles/create"

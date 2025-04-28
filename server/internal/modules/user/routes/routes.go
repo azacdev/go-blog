@@ -12,10 +12,7 @@ func Routes(router *gin.Engine) {
 	guestGroup := router.Group("/")
 	guestGroup.Use(middlewares.IsGuest())
 	{
-		// guestGroup.GET("/register", articlesController.Register)
 		guestGroup.POST("/register", articlesController.HandleRegister)
-
-		guestGroup.GET("/login", articlesController.Login)
 		guestGroup.POST("/login", articlesController.HandleLogin)
 	}
 
