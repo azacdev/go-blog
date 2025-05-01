@@ -19,7 +19,7 @@ func New() *ArticleRepository {
 func (articleRepository *ArticleRepository) List(limit int) ([]ArticleModel.Article, error) {
 	var articles []ArticleModel.Article
 
-	result := articleRepository.DB.Limit(limit).Joins("User").Find(&articles)
+	result := articleRepository.DB.Limit(limit).Joins("User").Order("created_at DESC").Find(&articles)
 	if result.Error != nil {
 		return nil, result.Error // Return nil slice and the error
 	}

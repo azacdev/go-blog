@@ -44,19 +44,7 @@ export default function ArticleForm() {
 
   async function onSubmit(values: FormValues) {
     console.log("Article form values:", values);
-
-    // Here you would typically handle article creation
-    // For now, we'll just log the values
-
-    // Mock API call
     try {
-      // Simulate API call
-      // await fetch('/api/articles', {
-      //   method: 'POST',
-      //   body: JSON.stringify(values),
-      // })
-      // If successful, redirect
-      // router.push('/articles')
     } catch (error) {
       console.error("Article creation error:", error);
       setErrors({
