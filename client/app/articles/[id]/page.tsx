@@ -26,9 +26,9 @@ const mockArticle = {
 export default async function ArticlePage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const id = await params.id;
+  const { id } = await params;
   const result = await getArticleById(id);
   const article = result.data?.article;
 

@@ -5,7 +5,15 @@ import Image from "next/image";
 import { useState } from "react";
 import { Search } from "lucide-react";
 import { useAtom } from "jotai/react";
+
 import { userAtom } from "@/store/user-store";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function Navbar() {
   const [user] = useAtom(userAtom);
@@ -80,11 +88,12 @@ export default function Navbar() {
                   Login
                 </Link>
               ) : (
-                <div className="ml-4 relative">
-                  <div>
+                <DropdownMenu dir="rtl">
+                  <DropdownMenuTrigger>
+                    {" "}
                     <button
                       type="button"
-                      className="flex items-center max-w-xs rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                      className="flex items-center max-w-xs rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 hover:cursor-pointer"
                       id="user-menu-button"
                       aria-expanded="false"
                       aria-haspopup="true"
@@ -100,36 +109,32 @@ export default function Navbar() {
                         width={32}
                         height={32}
                       />
-                      <span className="ml-2 text-gray-700">{user.Name}</span>
                     </button>
-                  </div>
-
-                  {/* Dropdown menu */}
-                  {isMenuOpen && (
-                    <div
-                      className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
-                      role="menu"
-                      aria-orientation="vertical"
-                      aria-labelledby="user-menu-button"
-                      tabIndex={-1}
-                    >
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem>
+                      {" "}
                       <Link
-                        href="/articles/create"
+                        href="/create-article"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         role="menuitem"
                       >
                         Create article
                       </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem>
+                      {" "}
                       <button
                         onClick={handleLogout}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:cursor-pointer"
                         role="menuitem"
                       >
                         Logout
                       </button>
-                    </div>
-                  )}
-                </div>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
             </div>
           </div>
@@ -160,7 +165,7 @@ export default function Navbar() {
                   <span className="text-gray-700">{user.Name}</span>
                 </div>
                 <Link
-                  href="/articles/create"
+                  href="/create-article"
                   className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                 >
                   Create article

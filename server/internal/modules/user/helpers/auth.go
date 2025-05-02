@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"errors"
 	"strconv"
 
 	UserRepository "github.com/azacdev/go-blog/internal/modules/user/repositories"
@@ -9,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Auth(c *gin.Context) UserResponse.User {
+func Auth(c *gin.Context) (UserResponse.User, error) {
 	var response UserResponse.User
 	authID := sessions.Get(c, "auth")
 	userID, _ := strconv.Atoi(authID)
@@ -19,8 +20,8 @@ func Auth(c *gin.Context) UserResponse.User {
 	user := userRepo.FindByID(userID)
 
 	if user.ID == 0 {
-		return response
+		return response, errors.New("user not found")
 	}
 
-	return UserResponse.ToUser(user)
+	return UserResponse.ToUser(user), nil
 }
