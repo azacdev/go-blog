@@ -3,12 +3,10 @@ package controllers
 import (
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/azacdev/go-blog/internal/modules/user/request/auth"
 	userService "github.com/azacdev/go-blog/internal/modules/user/services"
 	"github.com/azacdev/go-blog/pkg/errors"
-	"github.com/azacdev/go-blog/pkg/sessions"
 	"github.com/gin-gonic/gin"
 )
 
@@ -44,13 +42,10 @@ func (controller *Controller) HandleRegister(c *gin.Context) {
 		return
 	}
 
-	sessions.Set(c, "auth", strconv.Itoa(int(user.ID)))
-	// After creating the user redirect to homepage
-	log.Printf("The user has been created successfully with name %s \n", user.Name)
-
 	c.JSON(http.StatusCreated, gin.H{
-		"status":  http.StatusOK,
+		"status":  http.StatusCreated,
 		"message": "The user has been created successfully",
+		"user":    user,
 	})
 }
 
@@ -73,22 +68,65 @@ func (controller *Controller) HandleLogin(c *gin.Context) {
 		return
 	}
 
-	sessions.Set(c, "auth", strconv.Itoa(int(user.ID)))
-	// After creating the user redirect to homepage
 	log.Printf("The user has been logged in successfully with name %s \n", user.Name)
 
 	c.JSON(http.StatusOK, gin.H{
 		"status":  http.StatusOK,
-		"message": "User loggedin succesfully",
+		"message": "User logged in successfully",
 		"user":    user,
 	})
 
 }
 
 func (controller *Controller) HandleLogout(c *gin.Context) {
-	sessions.Remove(c, "auth")
+	// Invalidate the refresh token in the database
+	userID, exists := c.Get("userID") // Assuming a middleware sets this
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"status":  http.StatusUnauthorized,
+			"message": "Unauthorized: User ID not found in context.",
+		})
+		return
+	}
+
+	err := controller.userService.RevokeRefreshToken(userID.(uint))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  http.StatusInternalServerError,
+			"message": "Failed to logout: " + err.Error(),
+		})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Logged out successfully",
+	})
+}
+
+// HandleRefreshToken handles the request to refresh access tokens
+func (controller *Controller) HandleRefreshToken(c *gin.Context) {
+	var request struct {
+		RefreshToken string `json:"refresh_token" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		errors.ValidationErrorResponse(c, err)
+		return
+	}
+
+	newAccessToken, newRefreshToken, err := controller.userService.RefreshTokens(request.RefreshToken)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"status":  http.StatusUnauthorized,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":        http.StatusOK,
+		"message":       "Tokens refreshed successfully",
+		"access_token":  newAccessToken,
+		"refresh_token": newRefreshToken,
 	})
 }

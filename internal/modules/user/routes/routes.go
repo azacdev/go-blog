@@ -7,18 +7,21 @@ import (
 )
 
 func Routes(router *gin.Engine) {
-	articlesController := userCtrl.New()
+	userController := userCtrl.New()
 
 	guestGroup := router.Group("/")
 	guestGroup.Use(middlewares.IsGuest())
 	{
-		guestGroup.POST("/register", articlesController.HandleRegister)
-		guestGroup.POST("/login", articlesController.HandleLogin)
+		guestGroup.POST("/register", userController.HandleRegister)
+		guestGroup.POST("/login", userController.HandleLogin)
 	}
 
 	authGroup := router.Group("/")
 	authGroup.Use(middlewares.IsAuth())
 	{
-		authGroup.POST("/logout", articlesController.HandleLogout)
+		authGroup.POST("/logout", userController.HandleLogout)
+
 	}
+
+	router.POST("/refresh-token", userController.HandleRefreshToken)
 }
