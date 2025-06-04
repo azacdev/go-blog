@@ -39,3 +39,7 @@ func (userRepository *UserRepository) FindByID(id int) userModel.User {
 
 	return user
 }
+
+func (userRepository *UserRepository) Update(user userModel.User) error {
+	return userRepository.DB.Save(&user).Error
+}

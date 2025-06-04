@@ -1,15 +1,24 @@
 package config
 
 type Config struct {
-	App    App
-	Server Server
-	DB     DB
+	App        App
+	Server     Server
+	DB         DB
+	JWTAccess  JWTAccess
+	JWTRefresh JWTRefresh
 }
 
 type App struct {
 	Name string
 }
 
+type JWTAccess struct {
+	Secret string
+}
+
+type JWTRefresh struct {
+	Secret string
+}
 type Server struct {
 	Host string
 	Port string

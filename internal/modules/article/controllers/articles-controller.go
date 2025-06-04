@@ -8,7 +8,6 @@ import (
 	ArticleService "github.com/azacdev/go-blog/internal/modules/services"
 	"github.com/azacdev/go-blog/internal/modules/user/helpers"
 	"github.com/azacdev/go-blog/pkg/errors"
-	"github.com/azacdev/go-blog/pkg/html"
 	"github.com/gin-gonic/gin"
 )
 
@@ -27,7 +26,7 @@ func (controller *Controller) Show(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 
 	if err != nil {
-		html.Render(c, http.StatusInternalServerError, "templates/errors/html/500", gin.H{"title": "Server error", "message": "Error converting the id"})
+		errors.ValidationErrorResponse(c, err)
 		return
 	}
 

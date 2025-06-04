@@ -7,10 +7,12 @@ import (
 )
 
 type User struct {
-	ID    uint
-	Image string
-	Name  string
-	Email string
+	ID           uint
+	Image        string
+	Name         string
+	Email        string
+	AccessToken  string
+	RefreshToken string
 }
 
 type Users struct {

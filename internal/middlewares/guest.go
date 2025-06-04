@@ -2,28 +2,37 @@ package middlewares
 
 import (
 	"net/http"
-	"strconv"
+	"strings"
 
-	UserRepository "github.com/azacdev/go-blog/internal/modules/user/repositories"
-	"github.com/azacdev/go-blog/pkg/sessions"
+	"github.com/azacdev/go-blog/pkg/utils"
 	"github.com/gin-gonic/gin"
 )
 
 func IsGuest() gin.HandlerFunc {
-	var userRepo = UserRepository.New()
-
 	return func(c *gin.Context) {
-		authID := sessions.Get(c, "auth")
-		userId, _ := strconv.Atoi(authID)
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
+			c.Next()
+			return
+		}
 
-		user := userRepo.FindByID(userId)
+		parts := strings.Split(authHeader, " ")
 
-		if user.ID != 0 {
+		if len(parts) != 2 || parts[0] != "Bearer" {
+
+			c.Next()
+			return
+		}
+
+		accessToken := parts[1]
+		_, err := utils.ValidateAccessToken(accessToken)
+		if err == nil {
+
 			c.Redirect(http.StatusFound, "/")
+			c.Abort()
 			return
 		}
 
 		c.Next()
-
 	}
 }
