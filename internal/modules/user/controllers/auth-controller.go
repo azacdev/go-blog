@@ -1,13 +1,17 @@
 package controllers
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 
 	"github.com/azacdev/go-blog/internal/modules/user/request/auth"
 	userService "github.com/azacdev/go-blog/internal/modules/user/services"
+	"github.com/azacdev/go-blog/pkg/config"
 	"github.com/azacdev/go-blog/pkg/errors"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 )
 
 type Controller struct {
@@ -18,6 +22,74 @@ func New() *Controller {
 	return &Controller{
 		userService: userService.New(),
 	}
+}
+
+var googleOauth2Config *oauth2.Config
+var oauthStateString = "go-backend"
+
+func init() {
+	config.Set()
+
+	cfg := config.Get()
+
+	googleOauth2Config = &oauth2.Config{
+		ClientID:     cfg.GoogleOAuth.ClientID,
+		ClientSecret: cfg.GoogleOAuth.ClientSecret,
+		RedirectURL:  "http://localhost:3000/dashboard/callback/google",
+		Scopes: []string{
+			"https://www.googleapis.com/auth/userinfo.profile",
+			"https://www.googleapis.com/auth/userinfo.email",
+		},
+		Endpoint: google.Endpoint,
+	}
+
+}
+
+func (controller *Controller) HandleGoogleLogin(c *gin.Context) {
+	url := googleOauth2Config.AuthCodeURL(oauthStateString, oauth2.AccessTypeOffline)
+	c.Redirect(http.StatusFound, url)
+}
+
+func (controller *Controller) HandleGoogleCallback(c *gin.Context) {
+	state := c.Query("state")
+	if state != oauthStateString {
+		errors.FieldErrorResponse(c, http.StatusBadRequest, "Invalid OAuth state")
+		return
+	}
+
+	code := c.Query("code")
+	token, err := googleOauth2Config.Exchange(c, code)
+	if err != nil {
+		errors.FieldErrorResponse(c, http.StatusInternalServerError, "Failed to exchange code for token: "+err.Error())
+		return
+	}
+
+	client := googleOauth2Config.Client(c, token)
+	resp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
+	if err != nil {
+		errors.FieldErrorResponse(c, http.StatusInternalServerError, "Failed to get user info: "+err.Error())
+		return
+	}
+	defer resp.Body.Close()
+
+	// Use the dedicated struct from the service layer
+	var userInfo auth.GoogleUserInfo
+	if err := json.NewDecoder(resp.Body).Decode(&userInfo); err != nil {
+		errors.FieldErrorResponse(c, http.StatusInternalServerError, "Failed to decode user info: "+err.Error())
+		return
+	}
+
+	user, err := controller.userService.HandleGoogleUser(userInfo)
+	if err != nil {
+		errors.FieldErrorResponse(c, http.StatusInternalServerError, "Failed to process Google login: "+err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  http.StatusOK,
+		"message": "User logged in successfully via Google",
+		"user":    user,
+	})
 }
 
 func (controller *Controller) HandleRegister(c *gin.Context) {

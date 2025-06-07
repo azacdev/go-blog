@@ -27,10 +27,9 @@ func IsGuest() gin.HandlerFunc {
 		accessToken := parts[1]
 		_, err := utils.ValidateAccessToken(accessToken)
 		if err == nil {
-
-			c.Redirect(http.StatusFound, "/")
-			c.Abort()
-			return
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
+				"message": "Already authenticated",
+			})
 		}
 
 		c.Next()

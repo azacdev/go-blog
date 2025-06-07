@@ -9,6 +9,7 @@ type UserServiceInterface interface {
 	Create(request auth.RegisterRequest) (userResponse.User, error)
 	CheckUserExists(email string) bool
 	HandleUserLogin(request auth.LoginRequest) (userResponse.User, error)
+	HandleGoogleUser(userInfo auth.GoogleUserInfo) (userResponse.User, error)
 	RefreshTokens(refreshToken string) (string, string, error)
 	RevokeRefreshToken(userID uint) error
 }

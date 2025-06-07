@@ -1,16 +1,14 @@
 package responses
 
 import (
-	"fmt"
-
 	userModels "github.com/azacdev/go-blog/internal/modules/user/models"
 )
 
 type User struct {
 	ID           uint
-	Image        string
 	Name         string
 	Email        string
+	Picture      string
 	AccessToken  string
 	RefreshToken string
 }
@@ -21,9 +19,9 @@ type Users struct {
 
 func ToUser(user userModels.User) User {
 	return User{
-		ID:    user.ID,
-		Name:  user.Name,
-		Email: user.Email,
-		Image: fmt.Sprintf("https://ui-avatars.com/api/?name=%s", user.Name),
+		ID:      user.ID,
+		Name:    user.Name,
+		Email:   user.Email,
+		Picture: user.Picture,
 	}
 }
