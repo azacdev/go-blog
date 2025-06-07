@@ -22,6 +22,53 @@ func New() *UserService {
 	}
 }
 
+func (userService *UserService) HandleGoogleUser(userInfo auth.GoogleUserInfo) (UserResponse.User, error) {
+	var response UserResponse.User
+
+	existingUser := userService.userRepository.FindByEmail(userInfo.Email)
+
+	if existingUser.ID == 0 {
+		log.Printf("User with email %s not found. Creating a new user.", userInfo.Email)
+		newUserModel := userModel.User{
+			Name:     userInfo.Name,
+			Email:    userInfo.Email,
+			Picture:  userInfo.Picture,
+			Password: "",
+		}
+		existingUser = userService.userRepository.Create(newUserModel)
+		if existingUser.ID == 0 {
+			return response, errors.New("failed to create new user from Google profile")
+		}
+	} else {
+
+		existingUser.Name = userInfo.Name
+		existingUser.Picture = userInfo.Picture
+		if err := userService.userRepository.Update(existingUser); err != nil {
+			log.Printf("Failed to update user %d with Google profile info: %v", existingUser.ID, err)
+
+		}
+	}
+
+	accessToken, refreshToken, err := utils.GenerateTokens(existingUser.ID)
+	if err != nil {
+		return response, errors.New("failed to generate authentication tokens")
+	}
+
+	existingUser.RefreshToken = refreshToken
+	if err := userService.userRepository.Update(existingUser); err != nil {
+		log.Printf("Failed to update user %d with refresh token: %v", existingUser.ID, err)
+		return response, errors.New("failed to save refresh token for user")
+	}
+
+	userRes := UserResponse.ToUser(existingUser)
+	userRes.AccessToken = accessToken
+	userRes.RefreshToken = refreshToken
+
+	log.Printf("User %s (%d) logged in successfully via Google.", userRes.Email, userRes.ID)
+
+	return userRes, nil
+}
+
 func (userService *UserService) Create(request auth.RegisterRequest) (UserResponse.User, error) {
 	var response UserResponse.User
 	var user userModel.User

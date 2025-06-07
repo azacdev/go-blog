@@ -1,11 +1,12 @@
 package config
 
 type Config struct {
-	App        App
-	Server     Server
-	DB         DB
-	JWTAccess  JWTAccess
-	JWTRefresh JWTRefresh
+	App         App
+	Server      Server
+	DB          DB
+	JWTAccess   JWTAccess
+	JWTRefresh  JWTRefresh
+	GoogleOAuth GoogleOAuth
 }
 
 type App struct {
@@ -31,4 +32,9 @@ type DB struct {
 	Port     string
 	Name     string
 	Sll      string
+}
+
+type GoogleOAuth struct {
+	ClientID     string
+	ClientSecret string
 }
