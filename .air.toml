@@ -1,0 +1,48 @@
+root = "."
+tmp_dir = "tmp"
+
+[build]
+cmd = "go build -o ./tmp/go-blog ." # Build to ./tmp/go-blog
+bin = "./tmp/go-blog"               # Point to ./tmp/go-blog
+full_bin = "./tmp/go-blog serve"
+
+[runner]
+  enable = true
+  mode = "app"
+  args = []
+  env = []
+  port = 8080 # Adjust if your app serves on a different port
+
+[others]
+  paths = ["."]
+  ignored_dirs = ["tmp", "vendor", "node_modules", ".git"]
+  excluded_exts = [".log"]
+  included_exts = [".go", ".yaml", ".tmpl"]
+  build_flags = []
+  run_flags = []
+  
+[watch]
+  paths = [
+    ".",
+  ]
+  ignored_dirs = [
+    "tmp",
+    "vendor",
+    "node_modules",
+    ".git",
+  ]
+  excluded_exts = [".log"]
+  included_exts = [".go", ".yaml", ".tmpl"]
+
+[log]
+  time = true
+
+[color]
+  app = ""
+  build = "yellow"
+  main = "magenta"
+  runner = "green"
+  watcher = "cyan"
+
+[misc]
+  clean_on_exit = true
